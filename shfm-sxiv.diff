@@ -1,0 +1,63 @@
+diff --git a/shfm b/shfm
+index a037d91..9ae7848 100755
+--- a/shfm
++++ b/shfm
+@@ -87,6 +87,23 @@ cmd_run() {
+     hist=2
+ }
+ 
++cmd_select() {
++    # cmd_select reads sxiv's output to add the corresponding files to selected.
++    # cmd_select will break on files with tabs or newlines in their names.
++    # it can handle file names with spaces unless there're two or more in a row.
++    # cmd_select won't crash shfm when such filenames are read in, it just fails to mark files.
++    term_reset
++    printf %s "$@"
++    b=
++    for a in $("$@"); do
++        a="${a#./}"
++        [ -n "$b" ] && b="$b $a" || b="$a"
++        add_selected "$b" && unset b || b="$a"
++    done || :
++    term_setup
++    hist=2
++}
++
+ file_escape() {
+     tmp=$1 safe=
+ 
+@@ -604,6 +621,7 @@ main() {
+ 
+     stty=$(stty -g)
+     term_setup
++
+     trap 'term_reset >&2; esc screen_alt l >&2; printf "%s\n" "$PWD"'  EXIT INT
+     trap 'term_setup; y=1 y2=1; redraw "$@"' WINCH
+ 
+@@ -645,7 +663,8 @@ main() {
+                        '    t - go to trash' \
+                        '    r - bulk rename' \
+                        '    a - select all' \
+-                       '    A - invert selection'
++                       '    A - invert selection' \
++                       '    s - select images with sxiv'
+                 ltype=keybinds
+             ;;
+ 
+@@ -1005,6 +1024,16 @@ main() {
+                 fi
+             ;;
+ 
++            s?)
++                # open all images in current directory in sxiv
++                # images marked by sxiv will be read in through cmd_select and
++                # added to selected.
++                # there's currently no way to tell sxiv which files shfm has
++                # already marked so that sxiv can unmark them.
++                cmd_select 'sxiv' '-boqt' .
++                redraw "$@"
++            ;;
++
+             # handle keys which emit escape sequences
+             "$esc_c"*) state=1 ;;
+                  '[1') state=2 ;;
