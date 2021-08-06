@@ -22,7 +22,6 @@ esc() {
 }
 
 term_setup() {
-    stty=$(stty -g)
     stty -icanon -echo
     esc screen_alt h
     esc DECAWM l
@@ -617,6 +616,7 @@ main() {
     tab_char=$(printf '\011')
 
     term_resize
+    stty=$(stty -g)
     term_setup
 
     trap 'term_reset'  EXIT INT
