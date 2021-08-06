@@ -872,8 +872,14 @@ main() {
                 [ "$ltype" = keybinds ] || [ "$#" -eq 0 ] && continue
                 del=
                 [ -z "$ltype$others" ] && [ "$PWD" = "$trash" ] && del=true
-                [ -z "$del" ] && msg="trash 's'elected 'c'ur" || msg="permanently delete 's'elected 'c'ur"
-                [ -z "$selected$others" ] && key=c || yes_no "$msg" "$#" || :
+                if [ -z "$selected$others" ]; then
+                    key=c
+                elif check_selected "$cur"; then
+                    key=s
+                else
+                    [ -z "$del" ] && msg="trash 's'elected 'c'ur" || msg="permanently delete 's'elected 'c'ur"
+                    yes_no "$msg" "$#" || :
+                fi
                 case $key in
                     s)
                         [ -z "$del" ] && msg="send selected to trash? y/n" || msg="permanently delete selected? y/n"
