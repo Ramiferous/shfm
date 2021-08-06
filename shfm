@@ -260,6 +260,7 @@ prompt() {
     esc DECRC
     esc DECTCEM l
     status_line "$3"
+    [ -n "$ans" ]
 }
 
 yes_no() {
@@ -985,13 +986,15 @@ main() {
                 yes_no "create new 'd'ir 'f'ile" "$#" || :
                 case $key in
                     d)
-                        prompt 'directory name: ' r "$#"
-                        [ -z "$ans" ] || [ -e "$ans" ] || [ "$ans" != "${ans#*/}" ] && continue
+                        # false positive, behavior intentional
+                        # shellcheck disable=2015
+                        prompt 'directory name: ' r "$#" && [ -e "$ans" ] && [ "$ans" != "${ans#*/}" ] || continue
                         cmd_run mkdir "$ans"
                     ;;
                     f)
-                        prompt 'file name: ' r "$#"
-                        [ -z "$ans" ] || [ -e "$ans" ] || [ "$ans" != "${ans#*/}" ] && continue
+                        # false positive, behavior intentional
+                        # shellcheck disable=2015
+                        prompt 'file name: ' r "$#" && [ -e "$ans" ] && [ "$ans" != "${ans#*/}" ] || continue
                         cmd_run touch "$ans"
                     ;;
                     *) continue ;;
@@ -1007,14 +1010,13 @@ main() {
             ;;
 
             :?)
-                prompt "cd: " r "$#"
+                prompt "cd: " r "$#" || continue
 
                 # false positive, behavior intentional
                 # shellcheck disable=2088
                 case $ans in
                     '~')   ans=$HOME ;;
                     '~/'*) ans=$HOME/${ans#"~/"} ;;
-                    '') continue ;;
                 esac
 
                 switch_dir "$ans" || [ -n "$ltype" ] || continue
@@ -1024,7 +1026,7 @@ main() {
 
             /?)
                 [ "$ltype" = keybinds ] && continue
-                prompt / r "$#"
+                prompt / r "$#" || continue
                 set_type=search
                 y=1 y2=1
             ;;
