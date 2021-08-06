@@ -35,11 +35,7 @@ term_reset() {
     esc DECTCEM h    >&2
     esc ED2          >&2
     esc DECSTBM      >&2
-    esc screen_alt l >&2
     stty "$stty"
-
-    # needed for cd-on-exit
-    printf '%s\n' "$PWD" >&1
 }
 
 term_resize() {
@@ -83,16 +79,10 @@ term_scroll_up() {
 }
 
 cmd_run() {
-    stty "$stty"
-    esc DECTCEM h
-    esc DECSTBM
-    esc ED2
+    term_reset
     printf %s "$@"
     "$@" 2>&1 || :
-    esc ED2
-    esc DECSTBM 1 "$((LINES - 3))"
-    esc DECTCEM l
-    stty -icanon -echo
+    term_setup
     hist=2
 }
 
@@ -615,7 +605,7 @@ main() {
     stty=$(stty -g)
     term_setup
 
-    trap 'term_reset'  EXIT INT
+    trap 'term_reset; esc screen_alt l >&2; printf "%s\n" "$PWD"'  EXIT INT
     trap 'term_resize; term_setup; y=1 y2=1; redraw "$@"' WINCH
 
     cmd_run mkdir '-p' "${trash:=${XDG_DATA_HOME:=$HOME/.local/share}/shfm/trash}"
