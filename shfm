@@ -224,17 +224,13 @@ prompt() {
     esc DECTCEM h
     esc EL0
 
-    case $2 in
-        r)
-            stty icanon echo
-            read -r ans ||:
-            stty -icanon -echo
-        ;;
-    esac
+    stty icanon echo
+    read -r ans ||:
+    stty -icanon -echo
 
     esc DECRC
     esc DECTCEM l
-    status_line "$3"
+    status_line "$2"
     [ -n "$ans" ]
 }
 
@@ -944,14 +940,14 @@ main() {
                     d)
                         # false positive, behavior intentional
                         # shellcheck disable=2015
-                        prompt 'directory name: ' r "$#" && [ -e "$ans" ] && [ "$ans" != "${ans#*/}" ] || continue
+                        prompt 'directory name: ' "$#" && [ -e "$ans" ] && [ "$ans" != "${ans#*/}" ] || continue
                         cmd_run mkdir "$ans"
                     ;;
 
                     f)
                         # false positive, behavior intentional
                         # shellcheck disable=2015
-                        prompt 'file name: ' r "$#" && [ -e "$ans" ] && [ "$ans" != "${ans#*/}" ] || continue
+                        prompt 'file name: ' "$#" && [ -e "$ans" ] && [ "$ans" != "${ans#*/}" ] || continue
                         cmd_run touch "$ans"
                     ;;
 
@@ -967,7 +963,7 @@ main() {
             ;;
 
             :?)
-                prompt "cd: " r "$#" || continue
+                prompt "cd: " "$#" || continue
 
                 # false positive, behavior intentional
                 # shellcheck disable=2088
@@ -982,7 +978,7 @@ main() {
 
             /?)
                 [ "$ltype" = keybinds ] && continue
-                prompt / r "$#" || continue
+                prompt / "$#" || continue
                 set_type=search y=1 y2=1
             ;;
 
