@@ -27,27 +27,28 @@ term_setup() {
     esc DECAWM l
     esc DECTCEM l
     esc ED2
-    esc DECSTBM 1 "$((LINES - 3))"
-}
 
-term_reset() {
-    esc DECAWM h     >&2
-    esc DECTCEM h    >&2
-    esc ED2          >&2
-    esc DECSTBM      >&2
-    stty "$stty"
-}
-
-term_resize() {
+    oldIFS="$IFS"
+    IFS=' '
     set -f
     # false-positive, behavior intentional, globbing is disabled.
     # shellcheck disable=2046
     set +f -- $(stty size)
+    IFS="$oldIFS"
 
     LINES=$1 COLUMNS=$2
 
     # space for status_line
     bottom=$((LINES - 3))
+    esc DECSTBM 1 "$bottom"
+}
+
+term_reset() {
+    esc DECAWM h
+    esc DECTCEM h
+    esc ED2
+    esc DECSTBM
+    stty "$stty"
 }
 
 term_scroll_down() {
@@ -601,12 +602,10 @@ main() {
     bs_char=$(printf '\177')
     tab_char=$(printf '\011')
 
-    term_resize
     stty=$(stty -g)
     term_setup
-
-    trap 'term_reset; esc screen_alt l >&2; printf "%s\n" "$PWD"'  EXIT INT
-    trap 'term_resize; term_setup; y=1 y2=1; redraw "$@"' WINCH
+    trap 'term_reset >&2; esc screen_alt l >&2; printf "%s\n" "$PWD"'  EXIT INT
+    trap 'term_setup; y=1 y2=1; redraw "$@"' WINCH
 
     cmd_run mkdir '-p' "${trash:=${XDG_DATA_HOME:=$HOME/.local/share}/shfm/trash}"
     cmd_run mkdir '-p' "${XDG_CACHE_HOME:=$HOME/.cache}/shfm"
