@@ -1,0 +1,122 @@
+diff --git a/README b/README
+index 9deb7d7..0999641 100644
+--- a/README
++++ b/README
+@@ -44,8 +44,7 @@ ________________________________________________________________________________
+ space - select (or deselect) current item
+     p - copy selected items to current folder
+     v - move selected items to current folder
+-    x - trash selected items (permanently delete if in trash directory)
+-    t - go to trash
++    x - permanently delete selected items
+     r - bulk rename
+     a - select all
+     A - invert selection
+@@ -61,7 +60,7 @@ right arrow - open file or directory
+ backspace   - go up level
+ enter       - open file or directory
+ 
+-delete      - trash selected items (permanently delete if in trash directory)
++delete      - permanently delete selected items
+ home        - go to top
+ end         - go to bottom
+ pg up       - go up one screen
+diff --git a/shfm b/shfm
+index e0ceb00..87eeef7 100755
+--- a/shfm
++++ b/shfm
+@@ -527,7 +527,9 @@ others_op() {
+                         fi
+                     ;;
+ 
+-                    v) cmd_run mv "$cwd/$fn" "$2"
++                    v) cmd_run mv "$cwd/$fn" "$2" ;;
++
++                    r) cmd_run rm '-rf' "$cwd/$fn"
+                 esac
+             fi
+             cwd=
+@@ -607,7 +609,6 @@ main() {
+     trap 'term_reset >&2; esc screen_alt l >&2; printf "%s\n" "$PWD"'  EXIT INT
+     trap 'term_setup; y=1 y2=1; redraw "$@"' WINCH
+ 
+-    cmd_run mkdir '-p' "${trash:=${XDG_DATA_HOME:=$HOME/.local/share}/shfm/trash}"
+     cmd_run mkdir '-p' "${XDG_CACHE_HOME:=$HOME/.cache}/shfm"
+     rename_file="$XDG_CACHE_HOME/shfm/bulk_rename$$"
+ 
+@@ -641,8 +642,7 @@ main() {
+                        'space - select (or deselect) current item' \
+                        '    p - copy selected items to current folder' \
+                        '    v - move selected items to current folder' \
+-                       '    x - trash selected items (permanently delete if in trash)' \
+-                       '    t - go to trash' \
++                       '    x - permanently delete selected items' \
+                        '    r - bulk rename' \
+                        '    a - select all' \
+                        '    A - invert selection' \
+@@ -817,47 +817,34 @@ main() {
+                 state=0
+                 [ "$ltype" = keybinds ] || [ "$#" -eq 0 ] && continue
+ 
+-                del=
+-                [ -z "$ltype$others" ] && [ "$PWD" = "$trash" ] && del=true
+                 if [ -z "$selected$others" ]; then
+                     key=c
+                 elif check_selected "$cur"; then
+                     key=s
+                 else
+-                    [ -z "$del" ] && msg="trash 's'elected 'c'ur" || msg="permanently delete 's'elected 'c'ur"
+-                    yes_no "$msg" "$#" || :
++                    yes_no "permanently delete 's'elected 'c'ur" "$#" || :
+                 fi
+ 
+                 case $key in
+                     s)
+-                        [ -z "$del" ] && msg="send selected to trash? y/n" || msg="permanently delete selected? y/n"
+-                        yes_no "$msg" "$#" || continue
++                        yes_no "permanently delete selected? y/n" "$#" || continue
+                         if [ -n "$selected" ]; then
+                             y=1 y2=1 IFS=/
+                             set -f
+                             # globbing disabled and word splitting intentional
+                             # shellcheck disable=2086
+-                            if [ -z "$del" ]; then
+-                                cmd_run mv $selected "$trash"
+-                            else
+-                                cmd_run rm '-rf' $selected
+-                            fi
++                            cmd_run rm '-rf' $selected
+                             set +f
+                             unset IFS selected
+                         fi
+-                        [ -n "$others" ] && others_op v "$trash"
++                        [ -n "$others" ] && others_op r
+                     ;;
+ 
+                     c)
+-                        [ -z "$del" ] && msg="send $cur to trash? y/n" || msg="permanently delete $cur? y/n"
+                         # false positive, behavior intentional
+                         # shellcheck disable=2015
+-                        [ -e "$cur" ] && yes_no "$msg" "$#" || continue
+-                        if [ -z "$del" ]; then
+-                            cmd_run mv "$cur" "$trash"
+-                        else
+-                            cmd_run rm '-rf' "$cur"
+-                        fi
++                        [ -e "$cur" ] && yes_no "permanently delete $cur? y/n" "$#" || continue
++                        cmd_run rm '-rf' "$cur"
+                         [ "$y" -eq $# ] && y -= 1
+                         [ "$y2" -eq $# ] && y2 -= 1
+                         [ "$y" -eq 0 ] && y=1
+@@ -876,11 +863,6 @@ main() {
+                 y=1 y2=1
+             ;;
+ 
+-            t?)
+-                switch_dir "$trash" || continue
+-                set_type=normal y=1 y2=1 ltype=
+-            ;;
+-
+             r?)
+                 [ -n "$ltype" ] || [ "$#" -lt 1 ] && continue
+                 for w; do
