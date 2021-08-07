@@ -24,30 +24,32 @@ ________________________________________________________________________________
 keybinds
 ________________________________________________________________________________
 
-j - down
-k - up
-l - open file or directory
-h - go up level
-g - go to top
-G - go to bottom
-d - toggle printing directories first
-q - quit
-: - cd to <input>
-/ - search current directory <input>*
-- - go to last directory
-~ - go home
-! - spawn shell
-. - toggle hidden files
-? - show help
-tab - next tab (or prev tab if shift is held)
-1-4 - move to tab 1-4
+    j - down
+    k - up
+    l - open file or directory
+    h - go up level
+    g - go to top
+    G - go to bottom
+    d - toggle printing directories first
+    q - quit
+    : - cd to <input>
+    / - search current directory <input>*
+    - - go to last directory
+    ~ - go home
+    ! - spawn shell
+    . - toggle hidden files
+    ? - show help
+  tab - next tab (or prev tab if shift is held)
+  1-4 - move to tab 1-4
 space - select (or deselect) current item
-p - copy selected items to current folder
-v - move selected items to current folder
-x - delete
-r - bulk rename
-a - select all
-A - invert selection
+    p - copy selected items to current folder
+    v - move selected items to current folder
+    x - trash selected items (permanently delete if in trash directory)
+    t - go to trash
+    r - bulk rename
+    a - select all
+    A - invert selection
+    n - create new file or directory
 
 Also supported:
 
@@ -56,13 +58,14 @@ up arrow    - up
 left arrow  - go up level
 right arrow - open file or directory
 
-backspace   - up
+backspace   - go up level
 enter       - open file or directory
 
-home        - move to top
-end         - move to bottom
-pg up       - move up one screen
-pg down     - move down one screen
+delete      - trash selected items (permanently delete if in trash directory)
+home        - go to top
+end         - go to bottom
+pg up       - go up one screen
+pg down     - go down one screen
 
 
 todo

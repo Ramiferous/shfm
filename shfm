@@ -641,11 +641,12 @@ main() {
                        'space - select (or deselect) current item' \
                        '    p - copy selected items to current folder' \
                        '    v - move selected items to current folder' \
-                       '    x - send to trash (permanently delete if in trash)' \
+                       '    x - trash selected items (permanently delete if in trash)' \
                        '    t - go to trash' \
                        '    r - bulk rename' \
                        '    a - select all' \
-                       '    A - invert selection'
+                       '    A - invert selection' \
+                       '    n - create new file or directory'
                 ltype=keybinds
             ;;
 
@@ -709,6 +710,7 @@ main() {
         fi
         key=$(dd ibs=1 count=1 2>/dev/null)
         case $key$state in
+            32) state=3 ;;
             42) state=4 ;;
             52) state=5 ;;
             62) state=6 ;;
@@ -811,7 +813,7 @@ main() {
                 set_type=normal
             ;;
 
-            x?|P2)
+            x?|\~3)
                 state=0
                 [ "$ltype" = keybinds ] || [ "$#" -eq 0 ] && continue
 
