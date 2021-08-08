@@ -57,10 +57,10 @@ term_scroll_down() {
     y=$((y + 1))
     y2=$((y2 + 1 < bottom ? y2 + 1 : bottom))
 
-    line_print "$((y - 1))" "$@"
+    line_print $((y - 1)) "$@"
     printf '\n'
     line_print "$y" "$@"
-    status_line "$#"
+    status_line $#
 }
 
 term_scroll_up() {
@@ -68,7 +68,7 @@ term_scroll_up() {
 
     y=$((y - 1))
 
-    line_print "$((y + 1))" "$@"
+    line_print $((y + 1)) "$@"
 
     case $y2 in
         1) esc IL ;;
@@ -76,7 +76,7 @@ term_scroll_up() {
     esac
 
     line_print "$y" "$@"
-    status_line "$#"
+    status_line $#
 }
 
 cmd_run() {
@@ -126,7 +126,6 @@ list_print() {
     i=1
     end=$((bottom + 1))
     mid=$((bottom / 4 < 5 ? 1 : bottom / 4))
-    
 
     case $# in
         0) set -- empty ;;
@@ -135,16 +134,16 @@ list_print() {
 
     case $hist in
         2) # redraw after cmd run
-            shift "$((y > y2 ? y - y2 : 0))"
+            shift $((y - y2))
         ;;
 
         1) # redraw after go-to-parent
             hist_search "$@"
-            shift "$((y >= bottom ? y - mid : 0))"
+            shift $((y >= bottom ? y - mid : 0))
         ;;
 
         *) # everything else
-            shift "$((y >= bottom ? y - bottom : 0))"
+            shift $((y >= bottom ? y - bottom : 0))
         ;;
     esac
     hist=0
@@ -158,17 +157,17 @@ list_print() {
         i=$((i + 1))
     done
 
-    esc CUP "$((y > y2 ? y2 : y))"
+    esc CUP "$y2"
 }
 
 redraw() {
     list_print "$@"
-    status_line "$#"
+    status_line $#
 }
 
 status_line() {
     esc DECSC
-    esc CUP "$((LINES - 1))"
+    esc CUP $((LINES - 1))
 
     ## lazy debug
     # esc SGR 32 32
@@ -231,9 +230,9 @@ yes_no() {
     printf %s "$1"
     esc DECTCEM h
     esc EL0
-    
+
     key=$(dd ibs=1 count=1 2>/dev/null)
-    
+
     esc DECRC
     esc DECTCEM l
     status_line "$2"
@@ -437,7 +436,7 @@ add_selected() {
     [ -e "$1" ] || return
     IFS=/
     for s in $selected; do
-        [ "$s" = "$1" ] && return
+        [ "$s" = "$1" ] && unset IFS && return
     done
     unset IFS
     selected="$selected$1/"
@@ -449,8 +448,9 @@ remove_selected() {
     selected="/$selected"
     beg="${selected%%/"$1"/*}"
     end="${selected##*/"$1"/}"
-    [ -z "$beg$end" ] && selected= && return 0
-    if [ "$beg" = "$end" ]; then
+    if [ -z "$beg$end" ]; then
+        selected=
+    elif [ "$beg" = "$end" ]; then
         selected="${selected#/}"
         return 1
     else
@@ -458,21 +458,6 @@ remove_selected() {
         selected="${selected#/}"
         selected="${selected%/}/"
     fi
-}
-
-toggle_all(){
-    IFS=/
-    new_selected=
-    for file; do
-        was_selected=
-        for s in $selected; do
-            [ "$s" = "$file" ] && was_selected=true && continue
-        done
-        [ -z "$was_selected" ] && new_selected="$new_selected$file/"
-    done
-    unset IFS
-    selected="$new_selected"
-    redraw "$@"
 }
 
 filter_inpwd() {
@@ -483,8 +468,7 @@ filter_inpwd() {
         if [ -z "$piece" ]; then
             [ -z "$fn" ] && continue
             [ "$PWD" = "$cwd" ] && inpwd="$inpwd$fn/" || notinpwd="$notinpwd$cwd/$fn/"
-            cwd=
-            fn=
+            unset cwd fn
         elif [ -n "$fn" ]; then
             cwd="$cwd/$fn"
         fi
@@ -530,8 +514,7 @@ others_op() {
                     v) cmd_run mv "$cwd/$fn" "$2"
                 esac
             fi
-            cwd=
-            fn=
+            unset cwd fn
         elif [ -n "$fn" ]; then
             cwd="$cwd/$fn"
         fi
@@ -550,24 +533,6 @@ redraw_cur_select(){
     printf %s "$1"
     esc SGR 0 0
     printf '\r'
-}
-
-redraw_selects() {
-    esc CUP
-    i=1
-    shift "$((y > y2 ? y - y2 : 0))"
-    esc SGR 0 0
-    for file do
-        [ "$i" -eq "$y2" ] && esc SGR 0 7
-        check_selected "$1" && printf + || printf ' '
-        [ "$i" -eq "$y2" ] && esc SGR 0 0
-        printf '\r'
-        [ "$i" -eq "$bottom" ] && break
-        esc CUD
-        i=$((i + 1))
-    done
-
-    esc CUP "$((y > y2 ? y2 : y))"
 }
 
 populate_dirs_and_files () {
@@ -756,10 +721,10 @@ main() {
                 get_cur "$y" "$@"
                 redraw "$@"
             ;;
-            
+
             \~5) # PGUP
                 state=0
-                [ "$y" -eq 1 ] || [ "$#" -eq 0 ] && continue
+                [ "$y" -eq 1 ] || [ $# -eq 0 ] && continue
                 y=$((y - bottom))
                 [ "$y" -lt 1 ] && y=1
                 [ "$y" -lt "$y2" ] && y2="$y"
@@ -767,13 +732,13 @@ main() {
                 get_cur "$y" "$@"
                 redraw "$@"
             ;;
-            
+
             \~6) # PGDOWN
                 state=0
-                [ "$y" -eq "$#" ] || [ "$#" -eq 0 ] && continue
+                [ "$y" -eq $# ] || [ $# -eq 0 ] && continue
                 y=$((y + bottom))
-                if [ "$y" -gt "$#" ]; then
-                    y="$#"
+                if [ "$y" -gt $# ]; then
+                    y=$#
                     y2=$((bottom > $# ? $# : bottom))
                 else
                     min=$((bottom + y - $#))
@@ -788,9 +753,9 @@ main() {
                 [ "$ltype" = keybinds ] || [ ! -e "$cur" ] && continue
                 new_select='+'
                 remove_selected "$cur" && new_select=' ' || selected="$selected$cur/"
-                if [ "$y" = "$#" ]; then
+                if [ "$y" = $# ]; then
                     redraw_cur_select "$new_select"
-                    status_line "$#"
+                    status_line $#
                 else
                     term_scroll_down "$@"
                 fi
@@ -815,7 +780,7 @@ main() {
 
             x?|\~3)
                 state=0
-                [ "$ltype" = keybinds ] || [ "$#" -eq 0 ] && continue
+                [ "$ltype" = keybinds ] || [ $# -eq 0 ] && continue
 
                 del=
                 [ -z "$ltype$others" ] && [ "$PWD" = "$trash" ] && del=true
@@ -825,13 +790,13 @@ main() {
                     key=s
                 else
                     [ -z "$del" ] && msg="trash 's'elected 'c'ur" || msg="permanently delete 's'elected 'c'ur"
-                    yes_no "$msg" "$#" || :
+                    yes_no "$msg" $# || :
                 fi
 
                 case $key in
                     s)
                         [ -z "$del" ] && msg="send selected to trash? y/n" || msg="permanently delete selected? y/n"
-                        yes_no "$msg" "$#" || continue
+                        yes_no "$msg" $# || continue
                         if [ -n "$selected" ]; then
                             y=1 y2=1 IFS=/
                             set -f
@@ -852,14 +817,15 @@ main() {
                         [ -z "$del" ] && msg="send $cur to trash? y/n" || msg="permanently delete $cur? y/n"
                         # false positive, behavior intentional
                         # shellcheck disable=2015
-                        [ -e "$cur" ] && yes_no "$msg" "$#" || continue
+                        [ -e "$cur" ] && yes_no "$msg" $# || continue
+                        remove_selected "$cur" || :
                         if [ -z "$del" ]; then
                             cmd_run mv "$cur" "$trash"
                         else
                             cmd_run rm '-rf' "$cur"
                         fi
-                        [ "$y" -eq $# ] && y -= 1
-                        [ "$y2" -eq $# ] && y2 -= 1
+                        [ "$y" -eq $# ] && y=$((y - 1))
+                        [ "$y2" -eq $# ] && y2=$((y2 - 1))
                         [ "$y" -eq 0 ] && y=1
                         [ "$y2" -eq 0 ] && y2=1
                     ;;
@@ -882,7 +848,7 @@ main() {
             ;;
 
             r?)
-                [ -n "$ltype" ] || [ "$#" -lt 1 ] && continue
+                [ -n "$ltype" ] || [ $# -lt 1 ] && continue
                 for w; do
                     printf '%s\n' "$w"
                 done > "$rename_file"
@@ -891,7 +857,7 @@ main() {
                 while IFS= read -r r; do
                     i=$((i+1))
                 done < "$rename_file"
-                [ "$i" -eq "$#" ] || continue
+                [ "$i" -eq $# ] || continue
                 renames=
                 while IFS= read -r r; do
                     [ -n "$r" ] && [ ! -e "$r" ] && [ "$r" = "${r#*/}" ] && renames="$renames$1/$r/"
@@ -913,32 +879,76 @@ main() {
             ;;
 
             a?)
+                [ $# -eq 0 ] && continue
                 IFS=/
                 selected=$*
                 unset IFS
-                redraw_selects "$@"
+
+                esc CUP
+                i=1
+                last_item=$(($# + y2 - y > bottom ? bottom : $# + y2 - y))
+                shift $((y - y2))
+                esc SGR 0 0
+                while [ "$i" -le "$last_item" ]; do
+                    [ "$i" -eq "$y2" ] && esc SGR 0 7
+                    printf +
+                    [ "$i" -eq "$y2" ] && esc SGR 0 0
+                    printf '\r'
+                    esc CUD
+                    i=$((i + 1))
+                done
+                esc CUP "$y2"
+                status_line $#
             ;;
 
             A?)
-                toggle_all "$@"
-                redraw_selects "$@"
+                [ $# -eq 0 ] && continue
+
+                IFS=/
+                new_selected=
+                esc CUP
+                i=1
+                first_item=$((y - y2 + 1))
+                last_item=$(($# + y2 - y > bottom ? bottom : $# + y2 - y))
+                for file; do
+                    was_selected=
+                    for s in $selected; do
+                        if [ "$s" = "$file" ]; then
+                            was_selected=true
+                            break
+                        fi
+                    done
+                    [ -z "$was_selected" ] && new_selected="$new_selected$file/"
+                    if [ "$i" -ge "$first_item" ] && [ "$i" -le "$last_item" ]; then
+                        [ "$i" -eq "$y" ] && esc SGR 0 7
+                        [ -z "$was_selected" ] && printf + || printf ' '
+                        [ "$i" -eq "$y" ] && esc SGR 0 0
+                        printf '\r'
+                        esc CUD
+                    fi
+                    i=$((i + 1))
+                done
+                esc CUP "$y2"
+                unset IFS
+                selected="$new_selected"
+                status_line $#
             ;;
 
             n?)
                 [ -z "$ltype" ] || continue
-                yes_no "create new 'd'ir 'f'ile" "$#" || :
+                yes_no "create new 'd'ir 'f'ile" $# || :
                 case $key in
                     d)
                         # false positive, behavior intentional
                         # shellcheck disable=2015
-                        prompt 'directory name: ' "$#" && [ -e "$ans" ] && [ "$ans" != "${ans#*/}" ] || continue
+                        prompt 'directory name: ' $# && [ -e "$ans" ] && [ "$ans" != "${ans#*/}" ] || continue
                         cmd_run mkdir "$ans"
                     ;;
 
                     f)
                         # false positive, behavior intentional
                         # shellcheck disable=2015
-                        prompt 'file name: ' "$#" && [ -e "$ans" ] && [ "$ans" != "${ans#*/}" ] || continue
+                        prompt 'file name: ' $# && [ -e "$ans" ] && [ "$ans" != "${ans#*/}" ] || continue
                         cmd_run touch "$ans"
                     ;;
 
@@ -954,7 +964,7 @@ main() {
             ;;
 
             :?)
-                prompt "cd: " "$#" || continue
+                prompt "cd: " $# || continue
 
                 # false positive, behavior intentional
                 # shellcheck disable=2088
@@ -969,7 +979,7 @@ main() {
 
             /?)
                 [ "$ltype" = keybinds ] && continue
-                prompt / "$#" || continue
+                prompt / $# || continue
                 set_type=search y=1 y2=1
             ;;
 
@@ -1042,7 +1052,7 @@ main() {
                     esac
                 ;;
 
-                *) status_line "$#"
+                *) status_line $#
             esac
         fi
     done
