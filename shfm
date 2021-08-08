@@ -965,14 +965,14 @@ main() {
                     d)
                         # false positive, behavior intentional
                         # shellcheck disable=2015
-                        prompt 'directory name: ' $# && [ -e "$ans" ] && [ "$ans" != "${ans#*/}" ] || continue
+                        prompt 'directory name: ' $# && [ ! -e "$ans" ] && [ "$ans" = "${ans#*/}" ] || continue
                         cmd_run mkdir "$ans"
                     ;;
 
                     f)
                         # false positive, behavior intentional
                         # shellcheck disable=2015
-                        prompt 'file name: ' $# && [ -e "$ans" ] && [ "$ans" != "${ans#*/}" ] || continue
+                        prompt 'file name: ' $# && [ ! -e "$ans" ] && [ "$ans" = "${ans#*/}" ] || continue
                         cmd_run touch "$ans"
                     ;;
 
