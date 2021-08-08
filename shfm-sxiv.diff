@@ -1,5 +1,5 @@
 diff --git a/shfm b/shfm
-index a037d91..9ae7848 100755
+index a753993..87968ff 100755
 --- a/shfm
 +++ b/shfm
 @@ -87,6 +87,23 @@ cmd_run() {
@@ -26,7 +26,7 @@ index a037d91..9ae7848 100755
  file_escape() {
      tmp=$1 safe=
  
-@@ -604,6 +621,7 @@ main() {
+@@ -584,6 +601,7 @@ main() {
  
      stty=$(stty -g)
      term_setup
@@ -34,17 +34,17 @@ index a037d91..9ae7848 100755
      trap 'term_reset >&2; esc screen_alt l >&2; printf "%s\n" "$PWD"'  EXIT INT
      trap 'term_setup; y=1 y2=1; redraw "$@"' WINCH
  
-@@ -645,7 +663,8 @@ main() {
-                        '    t - go to trash' \
+@@ -628,7 +646,8 @@ main() {
                         '    r - bulk rename' \
                         '    a - select all' \
--                       '    A - invert selection'
-+                       '    A - invert selection' \
+                        '    A - invert selection' \
+-                       '    n - create new file or directory'
++                       '    n - create new file or directory' \
 +                       '    s - select images with sxiv'
                  ltype=keybinds
              ;;
  
-@@ -1005,6 +1024,16 @@ main() {
+@@ -1041,6 +1060,16 @@ main() {
                  fi
              ;;
  

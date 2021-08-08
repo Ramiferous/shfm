@@ -22,10 +22,10 @@ index 9deb7d7..0999641 100644
  end         - go to bottom
  pg up       - go up one screen
 diff --git a/shfm b/shfm
-index e0ceb00..87eeef7 100755
+index 2722b82..c79c5c8 100755
 --- a/shfm
 +++ b/shfm
-@@ -527,7 +527,9 @@ others_op() {
+@@ -525,7 +525,9 @@ others_op() {
                          fi
                      ;;
  
@@ -35,8 +35,8 @@ index e0ceb00..87eeef7 100755
 +                    r) cmd_run rm '-rf' "$cwd/$fn"
                  esac
              fi
-             cwd=
-@@ -607,7 +609,6 @@ main() {
+             unset cwd fn
+@@ -587,7 +589,6 @@ main() {
      trap 'term_reset >&2; esc screen_alt l >&2; printf "%s\n" "$PWD"'  EXIT INT
      trap 'term_setup; y=1 y2=1; redraw "$@"' WINCH
  
@@ -44,7 +44,7 @@ index e0ceb00..87eeef7 100755
      cmd_run mkdir '-p' "${XDG_CACHE_HOME:=$HOME/.cache}/shfm"
      rename_file="$XDG_CACHE_HOME/shfm/bulk_rename$$"
  
-@@ -641,8 +642,7 @@ main() {
+@@ -623,8 +624,7 @@ main() {
                         'space - select (or deselect) current item' \
                         '    p - copy selected items to current folder' \
                         '    v - move selected items to current folder' \
@@ -54,9 +54,9 @@ index e0ceb00..87eeef7 100755
                         '    r - bulk rename' \
                         '    a - select all' \
                         '    A - invert selection' \
-@@ -817,47 +817,34 @@ main() {
+@@ -803,49 +803,36 @@ main() {
                  state=0
-                 [ "$ltype" = keybinds ] || [ "$#" -eq 0 ] && continue
+                 [ "$ltype" = keybinds ] || [ $# -eq 0 ] && continue
  
 -                del=
 -                [ -z "$ltype$others" ] && [ "$PWD" = "$trash" ] && del=true
@@ -66,15 +66,15 @@ index e0ceb00..87eeef7 100755
                      key=s
                  else
 -                    [ -z "$del" ] && msg="trash 's'elected 'c'ur" || msg="permanently delete 's'elected 'c'ur"
--                    yes_no "$msg" "$#" || :
-+                    yes_no "permanently delete 's'elected 'c'ur" "$#" || :
+-                    yes_no "$msg" $# || :
++                    yes_no "permanently delete 's'elected 'c'ur" $# || :
                  fi
  
                  case $key in
                      s)
 -                        [ -z "$del" ] && msg="send selected to trash? y/n" || msg="permanently delete selected? y/n"
--                        yes_no "$msg" "$#" || continue
-+                        yes_no "permanently delete selected? y/n" "$#" || continue
+-                        yes_no "$msg" $# || continue
++                        yes_no "permanently delete selected? y/n" $# || continue
                          if [ -n "$selected" ]; then
                              y=1 y2=1 IFS=/
                              set -f
@@ -88,6 +88,7 @@ index e0ceb00..87eeef7 100755
 +                            cmd_run rm '-rf' $selected
                              set +f
                              unset IFS selected
+                             num_sel=0
                          fi
 -                        [ -n "$others" ] && others_op v "$trash"
 +                        [ -n "$others" ] && others_op r
@@ -97,18 +98,19 @@ index e0ceb00..87eeef7 100755
 -                        [ -z "$del" ] && msg="send $cur to trash? y/n" || msg="permanently delete $cur? y/n"
                          # false positive, behavior intentional
                          # shellcheck disable=2015
--                        [ -e "$cur" ] && yes_no "$msg" "$#" || continue
+-                        [ -e "$cur" ] && yes_no "$msg" $# || continue
++                        [ -e "$cur" ] && yes_no "permanently delete $cur? y/n" $# || continue
+                         remove_selected "$cur" || :
 -                        if [ -z "$del" ]; then
 -                            cmd_run mv "$cur" "$trash"
 -                        else
 -                            cmd_run rm '-rf' "$cur"
 -                        fi
-+                        [ -e "$cur" ] && yes_no "permanently delete $cur? y/n" "$#" || continue
 +                        cmd_run rm '-rf' "$cur"
-                         [ "$y" -eq $# ] && y -= 1
-                         [ "$y2" -eq $# ] && y2 -= 1
+                         [ "$y" -eq $# ] && y=$((y - 1))
+                         [ "$y2" -eq $# ] && y2=$((y2 - 1))
                          [ "$y" -eq 0 ] && y=1
-@@ -876,11 +863,6 @@ main() {
+@@ -864,11 +851,6 @@ main() {
                  y=1 y2=1
              ;;
  
@@ -118,5 +120,5 @@ index e0ceb00..87eeef7 100755
 -            ;;
 -
              r?)
-                 [ -n "$ltype" ] || [ "$#" -lt 1 ] && continue
+                 [ -n "$ltype" ] || [ $# -lt 1 ] && continue
                  for w; do
