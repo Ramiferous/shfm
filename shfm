@@ -682,9 +682,11 @@ main() {
             if [ $# -eq 0 ]; then
                 y=1 y2=1 cur=
             else
-                [ "$y" -gt $# ] && y=$#
-                [ "$y2" -gt "$y" ] && y2="$y"
-                hist=2
+                if [ "$y" -gt $# ]; then
+                    y=$#
+                    [ "$y2" -gt "$y" ] && y2="$y"
+                    hist=2
+                fi
                 get_cur "$y" "$@"
             fi
             redraw "$@"
