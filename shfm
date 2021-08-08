@@ -188,7 +188,11 @@ status_line() {
     [ -n "$tab3" ] && esc SGR 36 36 && [ "$tab_num" -eq 3 ] && esc SGR 1 7
     printf 3; esc SGR 0 0; printf ' '
     [ -n "$tab4" ] && esc SGR 36 36 && [ "$tab_num" -eq 4 ] && esc SGR 1 7
-    printf 4; esc SGR 0 0; printf ' ]'
+    printf 4; esc SGR 0 0; printf ' ] '
+    esc SGR 36 36
+    esc SGR 1 7
+    printf ' %s ' $((num_sel + num_others))
+    esc SGR 0 0
     esc CUD
 
     case $USER in
@@ -440,6 +444,7 @@ add_selected() {
     done
     unset IFS
     selected="$selected$1/"
+    num_sel=$((num_sel + 1))
 }
 
 remove_selected() {
@@ -458,16 +463,25 @@ remove_selected() {
         selected="${selected#/}"
         selected="${selected%/}/"
     fi
+    num_sel=$((num_sel - 1))
 }
 
 filter_inpwd() {
     IFS=/
     unset cwd fn inpwd notinpwd
+    num_others="$num_sel"
+    num_sel=0
     set -- "$1//"
     for piece in $1; do
         if [ -z "$piece" ]; then
             [ -z "$fn" ] && continue
-            [ "$PWD" = "$cwd" ] && inpwd="$inpwd$fn/" || notinpwd="$notinpwd$cwd/$fn/"
+            if [ "$PWD" = "$cwd" ]; then
+                inpwd="$inpwd$fn/"
+                num_sel=$((num_sel + 1))
+            else
+                notinpwd="$notinpwd$cwd/$fn/"
+                num_others=$((num_others + 1))
+            fi
             unset cwd fn
         elif [ -n "$fn" ]; then
             cwd="$cwd/$fn"
@@ -521,6 +535,7 @@ others_op() {
         fn="$piece"
     done
     unset IFS others
+    num_others=0
 }
 
 get_cur() {
@@ -581,6 +596,8 @@ main() {
     tab_num=1
     set_type=normal
     dirs_first=1
+    num_sel=0
+    num_others=0
     state=0
     y=1 y2=1
     while true; do
@@ -751,7 +768,12 @@ main() {
             ' '?)
                 [ "$ltype" = keybinds ] || [ ! -e "$cur" ] && continue
                 new_select='+'
-                remove_selected "$cur" && new_select=' ' || selected="$selected$cur/"
+                if remove_selected "$cur"; then
+                    new_select=' '
+                else
+                    selected="$selected$cur/"
+                    num_sel=$((num_sel + 1))
+                fi
                 if [ "$y" = $# ]; then
                     redraw_cur_select "$new_select"
                     status_line $#
@@ -808,6 +830,7 @@ main() {
                             fi
                             set +f
                             unset IFS selected
+                            num_sel=0
                         fi
                         [ -n "$others" ] && others_op v "$trash"
                     ;;
@@ -878,9 +901,10 @@ main() {
             ;;
 
             a?)
-                [ $# -eq 0 ] && continue
+                [ $# -eq 0 ] || [ "$num_sel" -eq $# ] && continue
                 IFS=/
                 selected=$*
+                num_sel=$#
                 unset IFS
 
                 esc CUP
@@ -930,6 +954,7 @@ main() {
                 esc CUP "$y2"
                 unset IFS
                 selected="$new_selected"
+                num_sel=$(($# - num_sel))
                 status_line $#
             ;;
 
