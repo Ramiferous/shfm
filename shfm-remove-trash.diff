@@ -22,10 +22,10 @@ index 9deb7d7..0999641 100644
  end         - go to bottom
  pg up       - go up one screen
 diff --git a/shfm b/shfm
-index 2722b82..c79c5c8 100755
+index acdf604..2f5a364 100755
 --- a/shfm
 +++ b/shfm
-@@ -525,7 +525,9 @@ others_op() {
+@@ -541,7 +541,9 @@ others_op() {
                          fi
                      ;;
  
@@ -36,15 +36,15 @@ index 2722b82..c79c5c8 100755
                  esac
              fi
              unset cwd fn
-@@ -587,7 +589,6 @@ main() {
+@@ -604,7 +606,6 @@ main() {
      trap 'term_reset >&2; esc screen_alt l >&2; printf "%s\n" "$PWD"'  EXIT INT
      trap 'term_setup; y=1 y2=1; redraw "$@"' WINCH
  
 -    cmd_run mkdir '-p' "${trash:=${XDG_DATA_HOME:=$HOME/.local/share}/shfm/trash}"
      cmd_run mkdir '-p' "${XDG_CACHE_HOME:=$HOME/.cache}/shfm"
-     rename_file="$XDG_CACHE_HOME/shfm/bulk_rename$$"
+     rename_file=$XDG_CACHE_HOME/shfm/bulk_rename$$
  
-@@ -623,8 +624,7 @@ main() {
+@@ -642,8 +643,7 @@ main() {
                         'space - select (or deselect) current item' \
                         '    p - copy selected items to current folder' \
                         '    v - move selected items to current folder' \
@@ -54,7 +54,7 @@ index 2722b82..c79c5c8 100755
                         '    r - bulk rename' \
                         '    a - select all' \
                         '    A - invert selection' \
-@@ -803,49 +803,36 @@ main() {
+@@ -824,49 +824,36 @@ main() {
                  state=0
                  [ "$ltype" = keybinds ] || [ $# -eq 0 ] && continue
  
@@ -65,14 +65,14 @@ index 2722b82..c79c5c8 100755
                  elif check_selected "$cur"; then
                      key=s
                  else
--                    [ -z "$del" ] && msg="trash 's'elected 'c'ur" || msg="permanently delete 's'elected 'c'ur"
+-                    [ -z $del ] && msg="trash 's'elected 'c'ur" || msg="permanently delete 's'elected 'c'ur"
 -                    yes_no "$msg" $# || :
 +                    yes_no "permanently delete 's'elected 'c'ur" $# || :
                  fi
  
                  case $key in
                      s)
--                        [ -z "$del" ] && msg="send selected to trash? y/n" || msg="permanently delete selected? y/n"
+-                        [ -z $del ] && msg="send selected to trash? y/n" || msg="permanently delete selected? y/n"
 -                        yes_no "$msg" $# || continue
 +                        yes_no "permanently delete selected? y/n" $# || continue
                          if [ -n "$selected" ]; then
@@ -80,7 +80,7 @@ index 2722b82..c79c5c8 100755
                              set -f
                              # globbing disabled and word splitting intentional
                              # shellcheck disable=2086
--                            if [ -z "$del" ]; then
+-                            if [ -z $del ]; then
 -                                cmd_run mv $selected "$trash"
 -                            else
 -                                cmd_run rm '-rf' $selected
@@ -95,22 +95,22 @@ index 2722b82..c79c5c8 100755
                      ;;
  
                      c)
--                        [ -z "$del" ] && msg="send $cur to trash? y/n" || msg="permanently delete $cur? y/n"
+-                        [ -z $del ] && msg="send $cur to trash? y/n" || msg="permanently delete $cur? y/n"
                          # false positive, behavior intentional
                          # shellcheck disable=2015
 -                        [ -e "$cur" ] && yes_no "$msg" $# || continue
 +                        [ -e "$cur" ] && yes_no "permanently delete $cur? y/n" $# || continue
                          remove_selected "$cur" || :
--                        if [ -z "$del" ]; then
+-                        if [ -z $del ]; then
 -                            cmd_run mv "$cur" "$trash"
 -                        else
 -                            cmd_run rm '-rf' "$cur"
 -                        fi
 +                        cmd_run rm '-rf' "$cur"
-                         [ "$y" -eq $# ] && y=$((y - 1))
-                         [ "$y2" -eq $# ] && y2=$((y2 - 1))
-                         [ "$y" -eq 0 ] && y=1
-@@ -864,11 +851,6 @@ main() {
+                         [ $y -eq $# ] && y=$((y - 1))
+                         [ $y2 -eq $# ] && y2=$((y2 - 1))
+                         [ $y -eq 0 ] && y=1
+@@ -885,11 +872,6 @@ main() {
                  y=1 y2=1
              ;;
  
