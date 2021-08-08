@@ -272,7 +272,6 @@ to_tab() {
     old_pos=$y$y2
     case $tab_num in
         1)
-            tab_num=1
             tab1=$PWD
             hidden1=$hidden
             ltype1=$ltype
@@ -282,7 +281,6 @@ to_tab() {
         ;;
 
         2)
-            tab_num=2
             tab2=$PWD
             hidden2=$hidden
             ltype2=$ltype
@@ -292,7 +290,6 @@ to_tab() {
         ;;
 
         3)
-            tab_num=3
             tab3=$PWD
             hidden3=$hidden
             ltype3=$ltype
@@ -302,7 +299,6 @@ to_tab() {
         ;;
 
         4)
-            tab_num=4
             tab4=$PWD
             hidden4=$hidden
             ltype4=$ltype
@@ -313,6 +309,7 @@ to_tab() {
     esac
     case $1 in
         1)
+            tab_num=1
             if [ -z "$tab1" ]; then
                 tab1=$PWD
                 hidden1=$hidden
@@ -325,6 +322,7 @@ to_tab() {
         ;;
 
         2)
+            tab_num=2
             if [ -z "$tab2" ]; then
                 tab2=$PWD
                 hidden2=$hidden
@@ -337,6 +335,7 @@ to_tab() {
         ;;
 
         3)
+            tab_num=3
             if [ -z "$tab3" ]; then
                 tab3=$PWD
                 hidden3=$hidden
@@ -349,6 +348,7 @@ to_tab() {
         ;;
 
         4)
+            tab_num=4
             if [ -z "$tab4" ]; then
                 tab4=$PWD
                 hidden4=$hidden
