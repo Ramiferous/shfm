@@ -437,9 +437,11 @@ prev_tab() {
 check_selected() {
     # return code denotes whether input is selected: 0 yes, 1 no
     IFS=/
+    set -f
     for s in $selected; do
         [ "$s" = "$1" ] && unset IFS && return 0
     done
+    set +f
     unset IFS
     return 1
 }
@@ -447,9 +449,11 @@ check_selected() {
 add_selected() {
     [ -e "$1" ] || return
     IFS=/
+    set -f
     for s in $selected; do
         [ "$s" = "$1" ] && unset IFS && return
     done
+    set +f
     unset IFS
     selected=$selected$1/
     num_sel=$((num_sel + 1))
@@ -479,7 +483,7 @@ filter_inpwd() {
     unset cwd fn inpwd notinpwd
     num_others=$num_sel
     num_sel=0
-    set -- "$1//"
+    set -f -- "$1//"
     for piece in $1; do
         if [ -z "$piece" ]; then
             [ -z "$fn" ] && continue
@@ -496,15 +500,18 @@ filter_inpwd() {
         fi
         fn=$piece
     done
+    set +f
     unset IFS
 }
 
 add_paths() {
     IFS=/
     with_paths=
+    set -f
     for s in $selected; do
         [ -n "$s" ] && with_paths=$with_paths$PWD/$s/
     done
+    set +f
     unset IFS selected
 }
 
@@ -519,6 +526,7 @@ switch_dir() {
 
 others_op() {
     IFS=/
+    set -f
     unset cwd fn
     others=$others//
     for piece in $others; do
@@ -542,6 +550,7 @@ others_op() {
         fi
         fn=$piece
     done
+    set +f
     unset IFS others
     num_others=0
 }
