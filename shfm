@@ -535,13 +535,13 @@ others_op() {
                 case $1 in
                     p)
                         if [ -d "$cwd/$fn" ]; then
-                            cmd_run cp '-r' "$cwd/$fn" "$2"
+                            cmd_run cp -r -- "$cwd/$fn" "$2"
                         else
-                            cmd_run cp "$cwd/$fn" "$2"
+                            cmd_run cp -- "$cwd/$fn" "$2"
                         fi
                     ;;
 
-                    v) cmd_run mv "$cwd/$fn" "$2"
+                    v) cmd_run mv -- "$cwd/$fn" "$2"
                 esac
             fi
             unset cwd fn
@@ -848,9 +848,9 @@ main() {
                             # globbing disabled and word splitting intentional
                             # shellcheck disable=2086
                             if [ -z $del ]; then
-                                cmd_run mv $selected "$trash"
+                                cmd_run mv -- $selected "$trash"
                             else
-                                cmd_run rm '-rf' $selected
+                                cmd_run rm -rf -- $selected
                             fi
                             set +f
                             unset IFS selected
@@ -866,9 +866,9 @@ main() {
                         [ -e "$cur" ] && yes_no "$msg" $# || continue
                         remove_selected "$cur" || :
                         if [ -z $del ]; then
-                            cmd_run mv "$cur" "$trash"
+                            cmd_run mv -- "$cur" "$trash"
                         else
-                            cmd_run rm '-rf' "$cur"
+                            cmd_run rm -rf -- "$cur"
                         fi
                         [ $y -eq $# ] && y=$((y - 1))
                         [ $y2 -eq $# ] && y2=$((y2 - 1))
@@ -914,7 +914,7 @@ main() {
                 for new in $renames; do
                     [ -z "$old" ] && old="$new" && continue
                     if [ ! -e "$new" ]; then
-                        cmd_run mv "$old" "$new"
+                        cmd_run mv -- "$old" "$new"
                         remove_selected "$old" && selected=$selected$new/
                     fi
                     old=
