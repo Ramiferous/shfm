@@ -595,18 +595,21 @@ main() {
         *) cd -- "${1:-"$PWD"}"
     esac
 
+    trash="${XDG_DATA_HOME:=$HOME/.local/share}/shfm/trash"
+    cache="${XDG_CACHE_HOME:=$HOME/.cache}/shfm"
+    [ -e "$trash" ] || mkdir -p "$trash"
+    [ -e "$cache" ] || mkdir -p "$cache"
+    rename_file="$cache/bulk_rename$$"
+    exit_file="$cache/exit"
+
     esc_c=$(printf '\033')
     bs_char=$(printf '\177')
     tab_char=$(printf '\011')
 
     stty=$(stty -g)
     term_setup
-    trap 'term_reset >&2; esc screen_alt l >&2; printf "%s\n" "$PWD"'  EXIT INT
+    trap 'term_reset; esc screen_alt l; printf "%s\n" "$PWD" > "$exit_file"'  EXIT INT
     trap 'term_setup; y=1 y2=1; redraw "$@"' WINCH
-
-    cmd_run mkdir '-p' "${trash:=${XDG_DATA_HOME:=$HOME/.local/share}/shfm/trash}"
-    cmd_run mkdir '-p' "${XDG_CACHE_HOME:=$HOME/.cache}/shfm"
-    rename_file=$XDG_CACHE_HOME/shfm/bulk_rename$$
 
     tab1=$PWD
     num_tabs=4
