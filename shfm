@@ -927,7 +927,7 @@ main() {
             a?)
                 [ $# -eq 0 ] || [ $num_sel -eq $# ] && continue
                 IFS=/
-                selected=$*
+                selected=$*/
                 num_sel=$#
                 unset IFS
 
