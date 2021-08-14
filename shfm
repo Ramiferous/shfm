@@ -155,7 +155,7 @@ list_print() {
 
     for file do
         [ $i -eq $y2 ] && esc SGR 0 7
-        if [ $i -le $end ]; then
+        if [ $i -lt $end ]; then
             line_format "$file"
             esc CUD
         fi
