@@ -1,8 +1,8 @@
 diff --git a/shfm b/shfm
-index a753993..87968ff 100755
+index 0b227fc..5281926 100755
 --- a/shfm
 +++ b/shfm
-@@ -87,6 +87,23 @@ cmd_run() {
+@@ -110,6 +110,23 @@ cmd_run() {
      hist=2
  }
  
@@ -26,15 +26,7 @@ index a753993..87968ff 100755
  file_escape() {
      tmp=$1 safe=
  
-@@ -584,6 +601,7 @@ main() {
- 
-     stty=$(stty -g)
-     term_setup
-+
-     trap 'term_reset >&2; esc screen_alt l >&2; printf "%s\n" "$PWD"'  EXIT INT
-     trap 'term_setup; y=1 y2=1; redraw "$@"' WINCH
- 
-@@ -628,7 +646,8 @@ main() {
+@@ -696,7 +713,8 @@ main() {
                         '    r - bulk rename' \
                         '    a - select all' \
                         '    A - invert selection' \
@@ -44,7 +36,7 @@ index a753993..87968ff 100755
                  ltype=keybinds
              ;;
  
-@@ -1041,6 +1060,16 @@ main() {
+@@ -1117,6 +1135,16 @@ main() {
                  fi
              ;;
  
