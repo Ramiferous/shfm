@@ -48,6 +48,24 @@ term_setup() {
     esc DECSTBM 1 "$bottom"
 }
 
+term_resize() {
+    oldIFS=$IFS
+    IFS=' '
+    set -f
+    # false-positive, behavior intentional, globbing is disabled.
+    # shellcheck disable=2046
+    set +f -- $(stty size)
+    IFS=$oldIFS
+
+    LINES=$1 COLUMNS=$2
+
+    # space for status_line
+    bottom=$((LINES - 3))
+
+    # tell main loop to redraw because we don't have files list $@ here
+    set_type=resize
+}
+
 term_reset() {
     esc DECAWM h
     esc DECTCEM h
@@ -627,8 +645,9 @@ main() {
 
     stty=$(stty -g)
     term_setup
+    old_LINES=$LINES
     trap 'term_reset; esc screen_alt l; printf "%s\n" "$PWD" > "$exit_file"'  EXIT INT
-    trap 'term_setup; y=1 y2=1; redraw "$@"' WINCH
+    trap 'term_resize' WINCH
 
     tab1=$PWD
     num_tabs=4
@@ -642,6 +661,14 @@ main() {
     y=1 y2=1
 
     while true; do
+        # check before case statement because set_type=resize can be overwritten
+        if [ "$old_LINES" -ne "$LINES" ]; then
+            [ $y2 -gt $bottom ] && y2=$bottom
+            [ $y2 -gt $y ] && y2=$y
+            esc DECSTBM 1 "$bottom"
+            esc CUP $y2
+        fi
+        old_LINES=$LINES
         case $set_type in
             keybinds)
                 set -- '    j - down' \
