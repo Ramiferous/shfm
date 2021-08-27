@@ -33,13 +33,10 @@ term_setup() {
     esc DECTCEM l
     esc ED2
 
-    oldIFS=$IFS
-    IFS=' '
     set -f
     # false-positive, behavior intentional, globbing is disabled.
     # shellcheck disable=2046
-    set +f -- $(stty size)
-    IFS=$oldIFS
+    set +f -- $(IFS=' ' stty size)
 
     LINES=$1 COLUMNS=$2
 
@@ -49,13 +46,10 @@ term_setup() {
 }
 
 term_resize() {
-    oldIFS=$IFS
-    IFS=' '
     set -f
     # false-positive, behavior intentional, globbing is disabled.
     # shellcheck disable=2046
-    set +f -- $(stty size)
-    IFS=$oldIFS
+    set +f -- $(IFS=' ' stty size)
 
     LINES=$1 COLUMNS=$2
 
