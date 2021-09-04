@@ -551,13 +551,13 @@ others_op() {
                 case $1 in
                     p)
                         if [ -d "$cwd/$fn" ]; then
-                            cp -r -- "$cwd/$fn" "$2"
+                            cp -r -- "$cwd/$fn" "$2" || :
                         else
-                            cp -- "$cwd/$fn" "$2"
+                            cp -- "$cwd/$fn" "$2" || :
                         fi
                     ;;
 
-                    v) mv -- "$cwd/$fn" "$2"
+                    v) mv -- "$cwd/$fn" "$2" || :
                 esac
             fi
             unset cwd fn
@@ -889,7 +889,7 @@ main() {
                             # shellcheck disable=2086
                             if [ -z $del ]; then
                                 msg_line 'Trashing Files'
-                                mv -- $selected "$trash"
+                                mv -- $selected "$trash" || :
                             else
                                 msg_line 'Deleting Files'
                                 rm -rf -- $selected
@@ -909,7 +909,7 @@ main() {
                         remove_selected "$cur" || :
                         if [ -z $del ]; then
                             msg_line 'Trashing File'
-                            mv -- "$cur" "$trash"
+                            mv -- "$cur" "$trash" || :
                         else
                             msg_line 'Deleting File'
                             rm -rf -- "$cur"
