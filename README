@@ -85,13 +85,13 @@ cd on exit
 ________________________________________________________________________________
 
 For ease of use, a wrapper function can be added to your .shellrc (.bashrc, etc).
-```
+
 # Run 'shfm' with 's' or whatever you decide to name the function.
     s() {
         shfm "$@"
         cd "$(cat "${XDG_CACHE_HOME:=${HOME}/.cache}/shfm/exit")"
     }
-```
+    
 
 opener
 ________________________________________________________________________________
