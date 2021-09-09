@@ -84,26 +84,14 @@ ________________________________________________________________________________
 cd on exit
 ________________________________________________________________________________
 
-On exit, the utility will print the path to working directory to <stdout>. To
-disable this behavior, run with 'shfm >/dev/null'. Usage of this output is
-rather flexible.
-
-    # cd to directory on exit
-    cd "$(shfm)"
-
-    # store pwd in var on exit
-    var=$(shfm)
-
-    # store pwd in a file on exit
-    shfm > file
-
 For ease of use, a wrapper function can be added to your .shellrc (.bashrc, etc).
-
-    shfm() {
+```
+# Run 'shfm' with 's' or whatever you decide to name the function.
+    s() {
         shfm "$@"
         cd "$(cat "${XDG_CACHE_HOME:=${HOME}/.cache}/shfm/exit")"
     }
-
+```
 
 opener
 ________________________________________________________________________________
