@@ -749,7 +749,7 @@ main() {
                 [ $y2 -gt $bottom ] && y2=$bottom
                 [ $y2 -gt $y ] && y2=$y
                 esc DECSTBM 1 $bottom
-                esc CUP $y2
+                hist=2
             fi
             redraw "$@"
             set_type=
