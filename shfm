@@ -1074,6 +1074,10 @@ main() {
             /?)
                 [ "$ltype" = keybinds ] && continue
                 prompt / $# || continue
+                ans="${ans##/}"
+                case $ans in
+                    ''|*//*) continue
+                esac
                 set_type=search y=1 y2=1
             ;;
 
