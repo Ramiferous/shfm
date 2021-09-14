@@ -757,6 +757,7 @@ main() {
         key=$(dd ibs=1 count=1 2>/dev/null)
         case $key$state in
             32) state=3 ;;
+            42) state=4 ;;
             52) state=5 ;;
             62) state=6 ;;
 
@@ -793,7 +794,7 @@ main() {
                 redraw "$@"
             ;;
 
-            G?|F2) # END
+            G?|\~4) # END
                 state=0
                 [ $# -eq 0 ] && continue
                 y=$#
