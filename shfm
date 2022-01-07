@@ -42,7 +42,7 @@ term_setup() {
 
     # space for status_line
     bottom=$((LINES - 3))
-    esc DECSTBM 1 "$bottom"
+    esc DECSTBM 1 $bottom
 }
 
 term_resize() {
@@ -58,6 +58,7 @@ term_resize() {
 
     # tell main loop to redraw because we don't have files list $@ here
     set_type=resize
+    resized=1
 }
 
 term_reset() {
@@ -192,7 +193,7 @@ status_line() {
     # esc EL0
     # esc CUD
     # esc SGR 33 33
-    # printf '\r%s' "${others:-empty};$dirs;$files"
+    # printf '\r%s' "${others:-empty};$LINES;$COLUMNS;$count"
     # esc EL0
     # esc CUD
     # esc SGR 0 0
@@ -639,7 +640,6 @@ main() {
 
     stty=$(stty -g)
     term_setup
-    old_LINES=$LINES
     trap 'term_reset; esc screen_alt l; printf "%s\n" "$PWD" > "$exit_file"'  EXIT INT
     trap 'term_resize' WINCH
 
@@ -652,17 +652,10 @@ main() {
     num_sel=0
     num_others=0
     state=0
+    resized=0
     y=1 y2=1
 
     while true; do
-        # check before case statement because set_type=resize can be overwritten
-        if [ "$old_LINES" -ne "$LINES" ]; then
-            [ $y2 -gt $bottom ] && y2=$bottom
-            [ $y2 -gt $y ] && y2=$y
-            esc DECSTBM 1 "$bottom"
-            esc CUP $y2
-        fi
-        old_LINES=$LINES
         case $set_type in
             keybinds)
                 set -- '    j - down' \
@@ -751,12 +744,20 @@ main() {
                 fi
                 get_cur $y "$@"
             fi
+            # adjust y2 and scrollable area if window resized
+            if [ "$resized" -ne 0 ]; then
+                [ $y2 -gt $bottom ] && y2=$bottom
+                [ $y2 -gt $y ] && y2=$y
+                esc DECSTBM 1 $bottom
+                hist=2
+            fi
             redraw "$@"
             set_type=
         fi
         key=$(dd ibs=1 count=1 2>/dev/null)
         case $key$state in
             32) state=3 ;;
+            42) state=4 ;;
             52) state=5 ;;
             62) state=6 ;;
 
@@ -793,7 +794,7 @@ main() {
                 redraw "$@"
             ;;
 
-            G?|F2) # END
+            G?|\~4) # END
                 state=0
                 [ $# -eq 0 ] && continue
                 y=$#
@@ -1074,6 +1075,10 @@ main() {
             /?)
                 [ "$ltype" = keybinds ] && continue
                 prompt / $# || continue
+                ans="${ans##/}"
+                case $ans in
+                    ''|*//*) continue
+                esac
                 set_type=search y=1 y2=1
             ;;
 
