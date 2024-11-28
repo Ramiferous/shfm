@@ -643,7 +643,7 @@ main() {
         *) cd -- "${1:-"$PWD"}"
     esac
 
-    trash="${XDG_DATA_HOME:=$HOME/.local/share}/shfm/trash"
+    trash="${XDG_DATA_HOME:=$HOME/.local/share}/trash"
     cache="${XDG_CACHE_HOME:=$HOME/.cache}/shfm"
     [ -e "$trash" ] || mkdir -p "$trash"
     [ -e "$cache" ] || mkdir -p "$cache"
